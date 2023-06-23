@@ -45,84 +45,85 @@ class Grid {
           isWall: false,
           neighbors: [],
         };
-
-        // if the grids cell element is clicked
-        gridCellElement.addEventListener("click", () => {
-          switch (this.activeMode) {
-            case "start":
-              if (i !== this.stop.x || j !== this.stop.y) {
-                if (this.start.x !== null) {
-                  this.grid[this.start.x][
-                    this.start.y
-                  ].element.style.backgroundColor = "rgb(244, 244, 244)";
-                }
-                this.start.x = i;
-                this.start.y = j;
-                gridCellElement.style.backgroundColor =
-                  this.modes["start"].clickColor;
-                this.grid[i][j].isWall = false;
-              }
-              this.activeMode = "stop";
-              break;
-            case "stop":
-              if (i !== this.start.x || j !== this.start.y) {
-                if (this.stop.x !== null) {
-                  this.grid[this.stop.x][
-                    this.stop.y
-                  ].element.style.backgroundColor = "rgb(244, 244, 244)";
-                }
-                this.stop.x = i;
-                this.stop.y = j;
-                gridCellElement.style.backgroundColor =
-                  this.modes["stop"].clickColor;
-                this.grid[i][j].isWall = false;
-              }
-              this.activeMode = "wall";
-              break;
-            default:
-              // sets grid cell to a wall
-              if (
-                (i !== this.start.x || j !== this.start.y) &&
-                (i !== this.stop.x || j !== this.stop.y)
-              ) {
-                this.grid[i][j].isWall = true;
-                gridCellElement.style.backgroundColor =
-                  this.modes["wall"].clickColor;
-              }
-          }
-        });
-
-        // event listeners for hover color based on activeMode
-        gridCellElement.addEventListener("mouseover", () => {
-          this.currentHoveredElement = gridCellElement;
-          // check if the background color is any clickColor before updating
-          if (
-            gridCellElement.style.backgroundColor !==
-              this.modes["start"].clickColor &&
-            gridCellElement.style.backgroundColor !==
-              this.modes["stop"].clickColor &&
-            gridCellElement.style.backgroundColor !==
-              this.modes["wall"].clickColor
-          ) {
-            gridCellElement.style.backgroundColor =
-              this.modes[this.activeMode].hoverColor;
-          }
-        });
-        gridCellElement.addEventListener("mouseout", () => {
-          this.currentHoveredElement = null;
-          if (
-            gridCellElement.style.backgroundColor ===
-              this.modes["start"].hoverColor ||
-            gridCellElement.style.backgroundColor ===
-              this.modes["stop"].hoverColor ||
-            gridCellElement.style.backgroundColor ===
-              this.modes["wall"].hoverColor
-          ) {
-            gridCellElement.style.backgroundColor = "rgb(244, 244, 244)";
-          }
-        });
+        this.initEventListeners(gridCellElement, i, j);
       }
     }
+  }
+
+  initEventListeners(gridCellElement, i, j) {
+    // if the grids cell element is clicked
+    gridCellElement.addEventListener("click", () => {
+      switch (this.activeMode) {
+        case "start":
+          if (i !== this.stop.x || j !== this.stop.y) {
+            if (this.start.x !== null) {
+              this.grid[this.start.x][
+                this.start.y
+              ].element.style.backgroundColor = "rgb(244, 244, 244)";
+            }
+            this.start.x = i;
+            this.start.y = j;
+            gridCellElement.style.backgroundColor =
+              this.modes["start"].clickColor;
+            this.grid[i][j].isWall = false;
+          }
+          this.activeMode = "stop";
+          break;
+        case "stop":
+          if (i !== this.start.x || j !== this.start.y) {
+            if (this.stop.x !== null) {
+              this.grid[this.stop.x][
+                this.stop.y
+              ].element.style.backgroundColor = "rgb(244, 244, 244)";
+            }
+            this.stop.x = i;
+            this.stop.y = j;
+            gridCellElement.style.backgroundColor =
+              this.modes["stop"].clickColor;
+            this.grid[i][j].isWall = false;
+          }
+          this.activeMode = "wall";
+          break;
+        default:
+          // sets grid cell to a wall
+          if (
+            (i !== this.start.x || j !== this.start.y) &&
+            (i !== this.stop.x || j !== this.stop.y)
+          ) {
+            this.grid[i][j].isWall = true;
+            gridCellElement.style.backgroundColor =
+              this.modes["wall"].clickColor;
+          }
+      }
+    });
+
+    // event listeners for hover color based on activeMode
+    gridCellElement.addEventListener("mouseover", () => {
+      this.currentHoveredElement = gridCellElement;
+      // check if the background color is any clickColor before updating
+      if (
+        gridCellElement.style.backgroundColor !==
+          this.modes["start"].clickColor &&
+        gridCellElement.style.backgroundColor !==
+          this.modes["stop"].clickColor &&
+        gridCellElement.style.backgroundColor !== this.modes["wall"].clickColor
+      ) {
+        gridCellElement.style.backgroundColor =
+          this.modes[this.activeMode].hoverColor;
+      }
+    });
+    gridCellElement.addEventListener("mouseout", () => {
+      this.currentHoveredElement = null;
+      if (
+        gridCellElement.style.backgroundColor ===
+          this.modes["start"].hoverColor ||
+        gridCellElement.style.backgroundColor ===
+          this.modes["stop"].hoverColor ||
+        gridCellElement.style.backgroundColor === this.modes["wall"].hoverColor
+      ) {
+        gridCellElement.style.backgroundColor = "rgb(244, 244, 244)";
+      }
+    });
   }
 }
 
