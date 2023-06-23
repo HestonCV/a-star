@@ -62,6 +62,7 @@ class Grid {
                   this.modes["start"].clickColor;
                 this.grid[i][j].isWall = false;
               }
+              this.activeMode = "stop";
               break;
             case "stop":
               if (i !== this.start.x || j !== this.start.y) {
@@ -76,6 +77,7 @@ class Grid {
                   this.modes["stop"].clickColor;
                 this.grid[i][j].isWall = false;
               }
+              this.activeMode = "wall";
               break;
             default:
               // sets grid cell to a wall
