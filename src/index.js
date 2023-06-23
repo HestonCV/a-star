@@ -1,3 +1,53 @@
+function areNodesEqual(nodeA, nodeB) {
+  return nodeA.x === nodeB.x && nodeA.y === nodeB.y;
+}
+
+function getNodeNeighbors(node) {
+  return node.neighbors;
+}
+
+function nodeHasBeenVisited(node, visitedNodes) {
+  for (let i = 0; i < visitedNodes.length; i += 1) {
+    if (areNodesEqual(node, visitedNodes[i])) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function aStar(grid) {
+  const start = grid.start.node;
+  const stop = grid.stop.node;
+
+  let queue = [start];
+  let visited = [];
+
+  while (queue.length > 0) {
+    let currentNode = queue.shift();
+
+    console.log("Current node:", currentNode);
+    console.log("Queue:", queue);
+    console.log("Visited nodes:", visited);
+
+    if (areNodesEqual(currentNode, stop)) {
+      console.log("found the stop node");
+      return;
+    }
+
+    currentNode.element.style.backgroundColor = "magenta";
+    visited.push(currentNode);
+
+    let neighbors = getNodeNeighbors(currentNode);
+    for (let i = 0; i < neighbors.length; i += 1) {
+      let neighbor = neighbors[i];
+      if (!nodeHasBeenVisited(neighbor, visited)) {
+        queue.push(neighbor);
+      }
+    }
+  }
+  console.log("Did not find the stop node");
+}
+
 class Grid {
   constructor(numColumns, numRows) {
     this.grid = new Array(numRows);
@@ -22,11 +72,52 @@ class Grid {
     this.start = {
       x: null,
       y: null,
+      node: null,
     };
     this.stop = {
       x: null,
       y: null,
+      node: null,
     };
+  }
+
+  async bfs() {
+    if (this.start.node === null || this.stop.node === null) {
+      console.log("Start or stop node is not defined");
+      return;
+    }
+
+    let queue = [];
+    let visited = new Set();
+
+    queue.push(this.start.node);
+    visited.add(this.start.node);
+
+    while (queue.length > 0) {
+      let current = queue.shift();
+
+      // If we found the stop node, we can stop the search
+      if (current === this.stop.node) {
+        console.log("Found the stop node");
+        return;
+      }
+
+      // Add neighbors to the queue
+      for (let neighbor of current.neighbors) {
+        if (!visited.has(neighbor) && !neighbor.isWall) {
+          queue.push(neighbor);
+          visited.add(neighbor);
+          neighbor.element.style.backgroundColor = "rgb(255, 165, 0)"; // Change the color of visited nodes
+          await this.sleep(5); // Add delay to visualize the process
+        }
+      }
+    }
+
+    console.log("Did not find the stop node");
+  }
+
+  sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   createGrid(numColumns, numRows) {
@@ -48,6 +139,21 @@ class Grid {
         this.initEventListeners(gridCellElement, i, j);
       }
     }
+    // add neighbors
+    for (let i = 0; i < numRows; i += 1) {
+      for (let j = 0; j < numColumns; j += 1) {
+        // add top neighbor
+        if (i - 1 >= 0) this.grid[i][j].neighbors.push(this.grid[i - 1][j]);
+        // add bottom neighbor
+        if (i + 1 < numRows)
+          this.grid[i][j].neighbors.push(this.grid[i + 1][j]);
+        // add left neighbor
+        if (j - 1 >= 0) this.grid[i][j].neighbors.push(this.grid[i][j - 1]);
+        // add right neighbor
+        if (j + 1 < numColumns)
+          this.grid[i][j].neighbors.push(this.grid[i][j + 1]);
+      }
+    }
   }
 
   initEventListeners(gridCellElement, i, j) {
@@ -63,6 +169,7 @@ class Grid {
             }
             this.start.x = i;
             this.start.y = j;
+            this.start.node = this.grid[i][j];
             gridCellElement.style.backgroundColor =
               this.modes["start"].clickColor;
             this.grid[i][j].isWall = false;
@@ -78,6 +185,7 @@ class Grid {
             }
             this.stop.x = i;
             this.stop.y = j;
+            this.stop.node = this.grid[i][j];
             gridCellElement.style.backgroundColor =
               this.modes["stop"].clickColor;
             this.grid[i][j].isWall = false;
@@ -94,6 +202,8 @@ class Grid {
             gridCellElement.style.backgroundColor =
               this.modes["wall"].clickColor;
           }
+          console.log(this.grid[i][j].x, this.grid[i][j].y);
+          console.log(this.grid[i][j].neighbors);
       }
     });
 
@@ -178,5 +288,9 @@ window.addEventListener("keydown", function (event) {
         }
       }
       grid.activeMode = "wall";
+      break;
+    case " ":
+      console.log("start");
+      grid.bfs();
   }
 });
