@@ -1,53 +1,3 @@
-function areNodesEqual(nodeA, nodeB) {
-  return nodeA.x === nodeB.x && nodeA.y === nodeB.y;
-}
-
-function getNodeNeighbors(node) {
-  return node.neighbors;
-}
-
-function nodeHasBeenVisited(node, visitedNodes) {
-  for (let i = 0; i < visitedNodes.length; i += 1) {
-    if (areNodesEqual(node, visitedNodes[i])) {
-      return true;
-    }
-  }
-  return false;
-}
-
-function aStar(grid) {
-  const start = grid.start.node;
-  const stop = grid.stop.node;
-
-  let queue = [start];
-  let visited = [];
-
-  while (queue.length > 0) {
-    let currentNode = queue.shift();
-
-    console.log("Current node:", currentNode);
-    console.log("Queue:", queue);
-    console.log("Visited nodes:", visited);
-
-    if (areNodesEqual(currentNode, stop)) {
-      console.log("found the stop node");
-      return;
-    }
-
-    currentNode.element.style.backgroundColor = "magenta";
-    visited.push(currentNode);
-
-    let neighbors = getNodeNeighbors(currentNode);
-    for (let i = 0; i < neighbors.length; i += 1) {
-      let neighbor = neighbors[i];
-      if (!nodeHasBeenVisited(neighbor, visited)) {
-        queue.push(neighbor);
-      }
-    }
-  }
-  console.log("Did not find the stop node");
-}
-
 class Grid {
   constructor(numColumns, numRows) {
     this.grid = new Array(numRows);
@@ -59,12 +9,12 @@ class Grid {
     this.currentHoveredElement = null;
     this.modes = {
       start: {
-        clickColor: "rgb(0, 191, 255)",
-        hoverColor: "rgb(166, 233, 255)",
-      },
-      stop: {
         clickColor: "rgb(72, 208, 72)",
         hoverColor: "rgb(150, 224, 150)",
+      },
+      stop: {
+        clickColor: "rgb(0, 191, 255)",
+        hoverColor: "rgb(166, 233, 255)",
       },
       wall: {
         clickColor: "rgb(88, 88, 88)",
@@ -95,19 +45,13 @@ class Grid {
 
     let queue = [];
     let visited = new Set();
+    let previous = new Map();
 
     queue.push(this.start.node);
     visited.add(this.start.node);
 
     while (queue.length > 0) {
       let current = queue.shift();
-
-      // If we found the stop node, we can stop the search
-      /*   if (current === this.stop.node) {
-        console.log("Found the stop node");
-        return;
-      }
- */
       // Add neighbors to the queue
       for (let neighbor of current.neighbors) {
         if (!this.locked) {
@@ -115,20 +59,33 @@ class Grid {
         }
         if (neighbor === this.stop.node) {
           console.log("Found the stop node");
+          previous.set(neighbor, current);
+          this.drawShortestPath(previous);
           this.clearHoverColors(20, 12);
           return;
         }
         if (!visited.has(neighbor) && !neighbor.isWall) {
           queue.push(neighbor);
           visited.add(neighbor);
+          previous.set(neighbor, current);
           neighbor.element.style.backgroundColor = "rgb(255, 165, 0)"; // Change the color of visited nodes
-          await this.sleep(25); // Add delay to visualize the process
+          await this.sleep(15); // Add delay to visualize the process
         }
       }
     }
 
     console.log("Did not find the stop node");
     this.clearHoverColors(20, 12);
+  }
+
+  drawShortestPath(previous) {
+    let node = this.stop.node;
+    while (node !== this.start.node) {
+      node = previous.get(node);
+      if (node !== this.start.node) {
+        node.element.style.backgroundColor = "rgb(247, 43, 11)";
+      }
+    }
   }
 
   sleep(ms) {
@@ -192,7 +149,9 @@ class Grid {
     for (let i = 0; i < this.numRows; i += 1) {
       for (let j = 0; j < this.numColumns; j += 1) {
         if (
-          this.grid[i][j].element.style.backgroundColor === "rgb(255, 165, 0)"
+          this.grid[i][j].element.style.backgroundColor ===
+            "rgb(255, 165, 0)" ||
+          this.grid[i][j].element.style.backgroundColor === "rgb(247, 43, 11)"
         ) {
           this.grid[i][j].element.style.backgroundColor = "rgb(244, 244, 244)";
         }

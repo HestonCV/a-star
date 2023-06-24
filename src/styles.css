@@ -1,4 +1,5 @@
 body {
+  font-family: "Roboto", sans-serif;
   background-color: #db3f59;
   margin: 0;
   height: 100vh;
@@ -7,7 +8,7 @@ body {
 .content-container {
   display: grid;
   justify-content: center;
-  grid-template-rows: 1fr 4fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr;
   height: 100%;
 }
 
@@ -32,4 +33,22 @@ body {
 .grid > div {
   border-radius: 2px;
   background-color: rgb(244, 244, 244);
+}
+
+.footer {
+  padding-top: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+}
+
+.run {
+  font-size: 2rem;
+  color: white;
+}
+
+.signature {
+  font-size: 1.3rem;
+  color: rgb(231, 231, 231);
 }
