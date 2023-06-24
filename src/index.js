@@ -52,6 +52,8 @@ class Grid {
   constructor(numColumns, numRows) {
     this.grid = new Array(numRows);
     this.gridElement = document.querySelector(".grid");
+    this.numColumns = numColumns;
+    this.numRows = numRows;
     this.createGrid(numColumns, numRows);
     this.activeMode = "start";
     this.currentHoveredElement = null;
@@ -79,11 +81,15 @@ class Grid {
       y: null,
       node: null,
     };
+    this.locked = false;
   }
 
   async bfs() {
+    this.locked = true;
+    this.clearHoverColors(20, 12);
     if (this.start.node === null || this.stop.node === null) {
       console.log("Start or stop node is not defined");
+      this.locked = false;
       return;
     }
 
@@ -97,23 +103,32 @@ class Grid {
       let current = queue.shift();
 
       // If we found the stop node, we can stop the search
-      if (current === this.stop.node) {
+      /*   if (current === this.stop.node) {
         console.log("Found the stop node");
         return;
       }
-
+ */
       // Add neighbors to the queue
       for (let neighbor of current.neighbors) {
+        if (!this.locked) {
+          return;
+        }
+        if (neighbor === this.stop.node) {
+          console.log("Found the stop node");
+          this.clearHoverColors(20, 12);
+          return;
+        }
         if (!visited.has(neighbor) && !neighbor.isWall) {
           queue.push(neighbor);
           visited.add(neighbor);
           neighbor.element.style.backgroundColor = "rgb(255, 165, 0)"; // Change the color of visited nodes
-          await this.sleep(5); // Add delay to visualize the process
+          await this.sleep(25); // Add delay to visualize the process
         }
       }
     }
 
     console.log("Did not find the stop node");
+    this.clearHoverColors(20, 12);
   }
 
   sleep(ms) {
@@ -156,82 +171,139 @@ class Grid {
     }
   }
 
+  clearHoverColors(numColumns, numRows) {
+    for (let i = 0; i < numRows; i += 1) {
+      for (let j = 0; j < numColumns; j += 1) {
+        if (
+          this.grid[i][j].element.style.backgroundColor ===
+            this.modes.start.hoverColor ||
+          this.grid[i][j].element.style.backgroundColor ===
+            this.modes.stop.hoverColor ||
+          this.grid[i][j].element.style.backgroundColor ===
+            this.modes.wall.hoverColor
+        ) {
+          this.grid[i][j].element.style.backgroundColor = "rgb(244, 244, 244)";
+        }
+      }
+    }
+  }
+
+  clearVisitedColors() {
+    for (let i = 0; i < this.numRows; i += 1) {
+      for (let j = 0; j < this.numColumns; j += 1) {
+        if (
+          this.grid[i][j].element.style.backgroundColor === "rgb(255, 165, 0)"
+        ) {
+          this.grid[i][j].element.style.backgroundColor = "rgb(244, 244, 244)";
+        }
+      }
+    }
+  }
+
+  clearGrid() {
+    this.stop.x = null;
+    this.stop.y = null;
+    this.stop.node = null;
+    this.start.x = null;
+    this.start.y = null;
+    this.start.node = null;
+    this.activeMode = "start";
+    this.clearAllColors();
+  }
+
+  clearAllColors() {
+    for (let i = 0; i < this.numRows; i += 1) {
+      for (let j = 0; j < this.numColumns; j += 1) {
+        this.grid[i][j].element.style.backgroundColor = "rgb(244, 244, 244)";
+        this.grid[i][j].isWall = false;
+      }
+    }
+  }
+
   initEventListeners(gridCellElement, i, j) {
     // if the grids cell element is clicked
     gridCellElement.addEventListener("click", () => {
-      switch (this.activeMode) {
-        case "start":
-          if (i !== this.stop.x || j !== this.stop.y) {
-            if (this.start.x !== null) {
-              this.grid[this.start.x][
-                this.start.y
-              ].element.style.backgroundColor = "rgb(244, 244, 244)";
+      if (!this.locked) {
+        switch (this.activeMode) {
+          case "start":
+            if (i !== this.stop.x || j !== this.stop.y) {
+              if (this.start.x !== null) {
+                this.grid[this.start.x][
+                  this.start.y
+                ].element.style.backgroundColor = "rgb(244, 244, 244)";
+              }
+              this.start.x = i;
+              this.start.y = j;
+              this.start.node = this.grid[i][j];
+              gridCellElement.style.backgroundColor =
+                this.modes["start"].clickColor;
+              this.grid[i][j].isWall = false;
             }
-            this.start.x = i;
-            this.start.y = j;
-            this.start.node = this.grid[i][j];
-            gridCellElement.style.backgroundColor =
-              this.modes["start"].clickColor;
-            this.grid[i][j].isWall = false;
-          }
-          this.activeMode = "stop";
-          break;
-        case "stop":
-          if (i !== this.start.x || j !== this.start.y) {
-            if (this.stop.x !== null) {
-              this.grid[this.stop.x][
-                this.stop.y
-              ].element.style.backgroundColor = "rgb(244, 244, 244)";
+            this.activeMode = "stop";
+            break;
+          case "stop":
+            if (i !== this.start.x || j !== this.start.y) {
+              if (this.stop.x !== null) {
+                this.grid[this.stop.x][
+                  this.stop.y
+                ].element.style.backgroundColor = "rgb(244, 244, 244)";
+              }
+              this.stop.x = i;
+              this.stop.y = j;
+              this.stop.node = this.grid[i][j];
+              gridCellElement.style.backgroundColor =
+                this.modes["stop"].clickColor;
+              this.grid[i][j].isWall = false;
             }
-            this.stop.x = i;
-            this.stop.y = j;
-            this.stop.node = this.grid[i][j];
-            gridCellElement.style.backgroundColor =
-              this.modes["stop"].clickColor;
-            this.grid[i][j].isWall = false;
-          }
-          this.activeMode = "wall";
-          break;
-        default:
-          // sets grid cell to a wall
-          if (
-            (i !== this.start.x || j !== this.start.y) &&
-            (i !== this.stop.x || j !== this.stop.y)
-          ) {
-            this.grid[i][j].isWall = true;
-            gridCellElement.style.backgroundColor =
-              this.modes["wall"].clickColor;
-          }
-          console.log(this.grid[i][j].x, this.grid[i][j].y);
-          console.log(this.grid[i][j].neighbors);
+            this.activeMode = "wall";
+            break;
+          default:
+            // sets grid cell to a wall
+            if (
+              (i !== this.start.x || j !== this.start.y) &&
+              (i !== this.stop.x || j !== this.stop.y)
+            ) {
+              this.grid[i][j].isWall = true;
+              gridCellElement.style.backgroundColor =
+                this.modes["wall"].clickColor;
+            }
+            console.log(this.grid[i][j].x, this.grid[i][j].y);
+            console.log(this.grid[i][j].neighbors);
+        }
       }
     });
 
     // event listeners for hover color based on activeMode
     gridCellElement.addEventListener("mouseover", () => {
-      this.currentHoveredElement = gridCellElement;
-      // check if the background color is any clickColor before updating
-      if (
-        gridCellElement.style.backgroundColor !==
-          this.modes["start"].clickColor &&
-        gridCellElement.style.backgroundColor !==
-          this.modes["stop"].clickColor &&
-        gridCellElement.style.backgroundColor !== this.modes["wall"].clickColor
-      ) {
-        gridCellElement.style.backgroundColor =
-          this.modes[this.activeMode].hoverColor;
+      if (!this.locked) {
+        this.currentHoveredElement = gridCellElement;
+        // check if the background color is any clickColor before updating
+        if (
+          gridCellElement.style.backgroundColor !==
+            this.modes["start"].clickColor &&
+          gridCellElement.style.backgroundColor !==
+            this.modes["stop"].clickColor &&
+          gridCellElement.style.backgroundColor !==
+            this.modes["wall"].clickColor
+        ) {
+          gridCellElement.style.backgroundColor =
+            this.modes[this.activeMode].hoverColor;
+        }
       }
     });
     gridCellElement.addEventListener("mouseout", () => {
-      this.currentHoveredElement = null;
-      if (
-        gridCellElement.style.backgroundColor ===
-          this.modes["start"].hoverColor ||
-        gridCellElement.style.backgroundColor ===
-          this.modes["stop"].hoverColor ||
-        gridCellElement.style.backgroundColor === this.modes["wall"].hoverColor
-      ) {
-        gridCellElement.style.backgroundColor = "rgb(244, 244, 244)";
+      if (!this.locked) {
+        this.currentHoveredElement = null;
+        if (
+          gridCellElement.style.backgroundColor ===
+            this.modes["start"].hoverColor ||
+          gridCellElement.style.backgroundColor ===
+            this.modes["stop"].hoverColor ||
+          gridCellElement.style.backgroundColor ===
+            this.modes["wall"].hoverColor
+        ) {
+          gridCellElement.style.backgroundColor = "rgb(244, 244, 244)";
+        }
       }
     });
   }
@@ -290,7 +362,16 @@ window.addEventListener("keydown", function (event) {
       grid.activeMode = "wall";
       break;
     case " ":
-      console.log("start");
-      grid.bfs();
+      if (grid.locked) {
+        grid.clearVisitedColors();
+        grid.locked = false;
+      } else {
+        grid.bfs();
+      }
+      break;
+    case "Escape":
+      grid.clearGrid();
+      grid.locked = false;
+      break;
   }
 });
