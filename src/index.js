@@ -235,7 +235,6 @@ class Grid {
     // event listeners for hover color based on activeMode
     gridCellElement.addEventListener("mouseover", () => {
       if (!this.locked) {
-        this.currentHoveredElement = gridCellElement;
         // check if the background color is any clickColor before updating
         if (
           gridCellElement.style.backgroundColor !==
@@ -249,10 +248,10 @@ class Grid {
             this.modes[this.activeMode].hoverColor;
         }
       }
+      this.currentHoveredElement = gridCellElement;
     });
     gridCellElement.addEventListener("mouseout", () => {
       if (!this.locked) {
-        this.currentHoveredElement = null;
         if (
           gridCellElement.style.backgroundColor ===
             this.modes["start"].hoverColor ||
@@ -264,6 +263,7 @@ class Grid {
           gridCellElement.style.backgroundColor = "rgb(244, 244, 244)";
         }
       }
+      this.currentHoveredElement = null;
     });
   }
 }
