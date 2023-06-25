@@ -235,6 +235,7 @@ class Grid {
     // event listeners for hover color based on activeMode
     gridCellElement.addEventListener("mouseover", () => {
       if (!this.locked) {
+        this.currentHoveredElement = gridCellElement;
         // check if the background color is any clickColor before updating
         if (
           gridCellElement.style.backgroundColor !==
@@ -247,8 +248,9 @@ class Grid {
           gridCellElement.style.backgroundColor =
             this.modes[this.activeMode].hoverColor;
         }
+      } else {
+        this.currentHoveredElement = null;
       }
-      this.currentHoveredElement = gridCellElement;
     });
     gridCellElement.addEventListener("mouseout", () => {
       if (!this.locked) {
@@ -262,8 +264,9 @@ class Grid {
         ) {
           gridCellElement.style.backgroundColor = "rgb(244, 244, 244)";
         }
+      } else {
+        this.currentHoveredElement = null;
       }
-      this.currentHoveredElement = null;
     });
   }
 }
@@ -273,7 +276,7 @@ const grid = new Grid(20, 12);
 window.addEventListener("keydown", function (event) {
   switch (event.key) {
     case "ArrowLeft":
-      if (grid.currentHoveredElement) {
+      if (grid.currentHoveredElement && !grid.locked) {
         if (
           grid.currentHoveredElement.style.backgroundColor !==
             grid.modes["start"].clickColor &&
@@ -289,7 +292,7 @@ window.addEventListener("keydown", function (event) {
       grid.activeMode = "stop";
       break;
     case "ArrowRight":
-      if (grid.currentHoveredElement) {
+      if (grid.currentHoveredElement && !grid.locked) {
         if (
           grid.currentHoveredElement.style.backgroundColor !==
             grid.modes["start"].clickColor &&
