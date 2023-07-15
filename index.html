@@ -11,13 +11,41 @@
   </head>
   <body>
     <div class="content-container">
-      <div class="header">BFS Visualization</div>
+      <div class="header">BFS Visualization <span class="info" id="info">i 
+        <div class="modal-background" id="modalBackground">
+        </div>
+        <div class="modal-content" id="modalContent">
+          <h2>What is BFS?</h2>
+          <span class="para-one">
+            <strong>-</strong>  BFS, or "Breadth-First Search", is a strategy used in computer science for exploring a graph,
+            or in simpler terms, a network of interconnected points. BFS starts at one point and explores
+            all the neighboring points before moving further. This ensures that the closest solution is
+            always found first.
+          </span>
+          <br>
+          <span class="para-two">
+            <strong>-</strong>  In the context of this interactive tool, we're using BFS to navigate a grid. The grid can be
+            thought of as a simple maze, where each cell is a point that can be connected to its neighbors,
+            blocked by walls that you place.
+          </span>
+          <h2>Controls</h2>
+          <div class="controls">
+            <ul>
+              <li><strong>Arrow-Left:</strong> Selects "End Node".</li>
+              <li><strong>Arrow-Right:</strong> Selects "Start Node".</li>
+              <li><strong>Arrow-Up:</strong> Selects "Wall Node". This can be placed to block the algorithm.</li>
+              <li><strong>Spacebar:</strong> Runs the algorithm when ready. After it is finished running this resets the algorithm.</li>
+              <li><strong>Escape:</strong> Resets Grid.</li>
+            </ul>
+          </div>
+        </div>
+      </span></div>
         <div class="grid-container">
           <div class="grid">
           </div>
         </div>
         <div class="footer">
-          <span class="run">Press SpaceBar To Run</span>
+          <span class="run" id="run">Place Start Node</span>
           <span class="signature">/* Heston Vaughan */</span>
         </div>
       </div>

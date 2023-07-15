@@ -1,5 +1,7 @@
 class Grid {
   constructor(numColumns, numRows) {
+    this.startNodeExists = false;
+    this.endNodeExists = false;
     this.grid = new Array(numRows);
     this.gridElement = document.querySelector(".grid");
     this.numColumns = numColumns;
@@ -53,7 +55,8 @@ class Grid {
     while (queue.length > 0) {
       let current = queue.shift();
       // Add neighbors to the queue
-      for (let neighbor of current.neighbors) {
+      const neighbors = this.getNeighbors(current);
+      for (let neighbor of neighbors) {
         if (!this.locked) {
           return;
         }
@@ -76,6 +79,62 @@ class Grid {
 
     console.log("Did not find the stop node");
     this.clearHoverColors(20, 12);
+  }
+
+  getNeighbors(node) {
+    let neighbors = [];
+    let i = node.x;
+    let j = node.y;
+    // add top neighbor
+    if (i - 1 >= 0 && !this.grid[i - 1][j].isWall)
+      neighbors.push(this.grid[i - 1][j]);
+    // add bottom neighbor
+    if (i + 1 < this.numRows && !this.grid[i + 1][j].isWall)
+      neighbors.push(this.grid[i + 1][j]);
+    // add left neighbor
+    if (j - 1 >= 0 && !this.grid[i][j - 1].isWall)
+      neighbors.push(this.grid[i][j - 1]);
+    // add right neighbor
+    if (j + 1 < this.numColumns && !this.grid[i][j + 1].isWall)
+      neighbors.push(this.grid[i][j + 1]);
+    // add top right neighbor
+    if (
+      j + 1 < this.numColumns &&
+      i - 1 >= 0 &&
+      !this.grid[i - 1][j + 1].isWall &&
+      !this.grid[i - 1][j].isWall &&
+      !this.grid[i][j + 1].isWall
+    )
+      neighbors.push(this.grid[i - 1][j + 1]);
+    // add top left neighbor
+    if (
+      j - 1 >= 0 &&
+      i - 1 >= 0 &&
+      !this.grid[i - 1][j - 1].isWall &&
+      !this.grid[i - 1][j].isWall &&
+      !this.grid[i][j - 1].isWall
+    )
+      neighbors.push(this.grid[i - 1][j - 1]);
+    // add bottom right neighbor
+    if (
+      j + 1 < this.numColumns &&
+      i + 1 < this.numRows &&
+      !this.grid[i + 1][j + 1].isWall &&
+      !this.grid[i + 1][j].isWall &&
+      !this.grid[i][j + 1].isWall
+    )
+      neighbors.push(this.grid[i + 1][j + 1]);
+    // add bottom left neighbor
+    if (
+      j - 1 >= 0 &&
+      i + 1 < this.numRows &&
+      !this.grid[i + 1][j - 1].isWall &&
+      !this.grid[i + 1][j].isWall &&
+      !this.grid[i][j - 1].isWall
+    )
+      neighbors.push(this.grid[i + 1][j - 1]);
+
+    return neighbors;
   }
 
   drawShortestPath(previous) {
@@ -109,21 +168,6 @@ class Grid {
           neighbors: [],
         };
         this.initEventListeners(gridCellElement, i, j);
-      }
-    }
-    // add neighbors
-    for (let i = 0; i < numRows; i += 1) {
-      for (let j = 0; j < numColumns; j += 1) {
-        // add top neighbor
-        if (i - 1 >= 0) this.grid[i][j].neighbors.push(this.grid[i - 1][j]);
-        // add bottom neighbor
-        if (i + 1 < numRows)
-          this.grid[i][j].neighbors.push(this.grid[i + 1][j]);
-        // add left neighbor
-        if (j - 1 >= 0) this.grid[i][j].neighbors.push(this.grid[i][j - 1]);
-        // add right neighbor
-        if (j + 1 < numColumns)
-          this.grid[i][j].neighbors.push(this.grid[i][j + 1]);
       }
     }
   }
@@ -160,6 +204,8 @@ class Grid {
   }
 
   clearGrid() {
+    this.startNodeExists = false;
+    this.endNodeExists = false;
     this.stop.x = null;
     this.stop.y = null;
     this.stop.node = null;
@@ -182,9 +228,17 @@ class Grid {
   initEventListeners(gridCellElement, i, j) {
     // if the grids cell element is clicked
     gridCellElement.addEventListener("click", () => {
+      const instructionElement = document.getElementById("run");
       if (!this.locked) {
         switch (this.activeMode) {
           case "start":
+            this.startNodeExists = true;
+            if (!this.endNodeExists) {
+              console.log("testend");
+              instructionElement.textContent = "Place End Node";
+            } else {
+              instructionElement.textContent = "Press Spacebar To Run";
+            }
             if (i !== this.stop.x || j !== this.stop.y) {
               if (this.start.x !== null) {
                 this.grid[this.start.x][
@@ -201,6 +255,13 @@ class Grid {
             this.activeMode = "stop";
             break;
           case "stop":
+            this.endNodeExists = true;
+            if (!this.startNodeExists) {
+              console.log("testend");
+              instructionElement.textContent = "Place Start Node";
+            } else {
+              instructionElement.textContent = "Press Spacebar To Run";
+            }
             if (i !== this.start.x || j !== this.start.y) {
               if (this.stop.x !== null) {
                 this.grid[this.stop.x][
@@ -274,6 +335,7 @@ class Grid {
 const grid = new Grid(20, 12);
 
 window.addEventListener("keydown", function (event) {
+  const instructionElement = document.getElementById("run");
   switch (event.key) {
     case "ArrowLeft":
       if (grid.currentHoveredElement && !grid.locked) {
@@ -324,6 +386,15 @@ window.addEventListener("keydown", function (event) {
       grid.activeMode = "wall";
       break;
     case " ":
+      if (!grid.startNodeExists && !grid.endNodeExists) {
+        instructionElement.textContent = "Place Start Node";
+      } else if (!grid.endNodeExists) {
+        instructionElement.textContent = "Place End Node";
+      } else if (!grid.startNodeExists) {
+        instructionElement.textContent = "Place Start Node";
+      } else {
+        instructionElement.textContent = "Press Spacebar To Run";
+      }
       if (grid.locked) {
         grid.clearVisitedColors();
         grid.locked = false;
@@ -332,8 +403,30 @@ window.addEventListener("keydown", function (event) {
       }
       break;
     case "Escape":
+      instructionElement.textContent = "Place Start Node";
       grid.clearGrid();
       grid.locked = false;
       break;
   }
+});
+
+const infoButton = document.getElementById("info");
+infoButton.addEventListener("mouseenter", () => {
+  isMouseOver = true;
+  setTimeout(() => {
+    if (isMouseOver) {
+      const modalBackground = document.getElementById("modalBackground");
+      const modalContent = document.getElementById("modalContent");
+      modalBackground.style.display = "block";
+      modalContent.style.display = "block";
+    }
+  }, 750);
+});
+
+infoButton.addEventListener("mouseleave", () => {
+  isMouseOver = false;
+  const modalBackground = document.getElementById("modalBackground");
+  const modalContent = document.getElementById("modalContent");
+  modalBackground.style.display = "none";
+  modalContent.style.display = "none";
 });
