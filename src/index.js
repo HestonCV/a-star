@@ -1,47 +1,20 @@
 class Grid {
-  constructor(numColumns, numRows) {
-    this.startNodeExists = false;
-    this.endNodeExists = false;
+  constructor(gridUI, numColumns, numRows) {
+    this.gridUI = gridUI;
     this.grid = new Array(numRows);
-    this.gridElement = document.querySelector(".grid");
     this.numColumns = numColumns;
     this.numRows = numRows;
-    this.createGrid(numColumns, numRows);
-    this.activeMode = "start";
-    this.currentHoveredElement = null;
-    this.modes = {
-      start: {
-        clickColor: "rgb(72, 208, 72)",
-        hoverColor: "rgb(150, 224, 150)",
-      },
-      stop: {
-        clickColor: "rgb(0, 191, 255)",
-        hoverColor: "rgb(166, 233, 255)",
-      },
-      wall: {
-        clickColor: "rgb(88, 88, 88)",
-        hoverColor: "rgb(183, 183, 183)",
-      },
-    };
-    this.start = {
-      x: null,
-      y: null,
-      node: null,
-    };
-    this.stop = {
-      x: null,
-      y: null,
-      node: null,
-    };
-    this.locked = false;
+    this.start = null;
+    this.stop = null;
+    this.createGrid();
   }
 
   async bfs() {
-    this.locked = true;
-    this.clearHoverColors(20, 12);
-    if (this.start.node === null || this.stop.node === null) {
+    this.gridUI.locked = true;
+    this.gridUI.clearHoverColors();
+    if (!this.start || !this.stop) {
       console.log("Start or stop node is not defined");
-      this.locked = false;
+      this.gridUI.locked = false;
       return;
     }
 
@@ -49,22 +22,22 @@ class Grid {
     let visited = new Set();
     let previous = new Map();
 
-    queue.push(this.start.node);
-    visited.add(this.start.node);
+    queue.push(this.start);
+    visited.add(this.start);
 
     while (queue.length > 0) {
       let current = queue.shift();
       // Add neighbors to the queue
       const neighbors = this.getNeighbors(current);
       for (let neighbor of neighbors) {
-        if (!this.locked) {
+        if (!this.gridUI.locked) {
           return;
         }
-        if (neighbor === this.stop.node) {
+        if (neighbor === this.stop) {
           console.log("Found the stop node");
           previous.set(neighbor, current);
           this.drawShortestPath(previous);
-          this.clearHoverColors(20, 12);
+          this.gridUI.clearHoverColors();
           return;
         }
         if (!visited.has(neighbor) && !neighbor.isWall) {
@@ -78,7 +51,7 @@ class Grid {
     }
 
     console.log("Did not find the stop node");
-    this.clearHoverColors(20, 12);
+    this.gridUI.clearHoverColors();
   }
 
   getNeighbors(node) {
@@ -138,10 +111,10 @@ class Grid {
   }
 
   drawShortestPath(previous) {
-    let node = this.stop.node;
-    while (node !== this.start.node) {
+    let node = this.stop;
+    while (node !== this.start) {
       node = previous.get(node);
-      if (node !== this.start.node) {
+      if (node !== this.start) {
         node.element.style.backgroundColor = "rgb(247, 43, 11)";
       }
     }
@@ -151,144 +124,129 @@ class Grid {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
-  createGrid(numColumns, numRows) {
-    for (let i = 0; i < numRows; i += 1) {
-      this.grid[i] = new Array(numColumns);
-      for (let j = 0; j < numColumns; j += 1) {
-        // create grid cell and add to grid parent
-        const gridCellElement = document.createElement("div");
-        this.gridElement.appendChild(gridCellElement);
-
+  createGrid() {
+    for (let i = 0; i < this.numRows; i += 1) {
+      this.grid[i] = new Array(this.numColumns);
+      for (let j = 0; j < this.numColumns; j += 1) {
         // initialize grid cell object
         this.grid[i][j] = {
           x: i,
           y: j,
-          element: gridCellElement,
+          element: this.gridUI.createGridCell(i, j),
           isWall: false,
           neighbors: [],
         };
-        this.initEventListeners(gridCellElement, i, j);
-      }
-    }
-  }
-
-  clearHoverColors(numColumns, numRows) {
-    for (let i = 0; i < numRows; i += 1) {
-      for (let j = 0; j < numColumns; j += 1) {
-        if (
-          this.grid[i][j].element.style.backgroundColor ===
-            this.modes.start.hoverColor ||
-          this.grid[i][j].element.style.backgroundColor ===
-            this.modes.stop.hoverColor ||
-          this.grid[i][j].element.style.backgroundColor ===
-            this.modes.wall.hoverColor
-        ) {
-          this.grid[i][j].element.style.backgroundColor = "rgb(244, 244, 244)";
-        }
-      }
-    }
-  }
-
-  clearVisitedColors() {
-    for (let i = 0; i < this.numRows; i += 1) {
-      for (let j = 0; j < this.numColumns; j += 1) {
-        if (
-          this.grid[i][j].element.style.backgroundColor ===
-            "rgb(255, 165, 0)" ||
-          this.grid[i][j].element.style.backgroundColor === "rgb(247, 43, 11)"
-        ) {
-          this.grid[i][j].element.style.backgroundColor = "rgb(244, 244, 244)";
-        }
       }
     }
   }
 
   clearGrid() {
-    this.startNodeExists = false;
-    this.endNodeExists = false;
-    this.stop.x = null;
-    this.stop.y = null;
-    this.stop.node = null;
-    this.start.x = null;
-    this.start.y = null;
-    this.start.node = null;
+    this.stop = null;
+    this.start = null;
+    this.grid.forEach((row) => row.forEach((cell) => (cell.isWall = false)));
+  }
+}
+
+class GridUI {
+  constructor() {
+    this.modes = {
+      start: {
+        clickColor: "rgb(72, 208, 72)",
+        hoverColor: "rgb(150, 224, 150)",
+      },
+      stop: {
+        clickColor: "rgb(0, 191, 255)",
+        hoverColor: "rgb(166, 233, 255)",
+      },
+      wall: {
+        clickColor: "rgb(88, 88, 88)",
+        hoverColor: "rgb(183, 183, 183)",
+      },
+    };
+    this.activeMode = "start";
+    this.currentHoveredElement = null;
+    this.locked = false;
+    this.gridElement = document.querySelector(".grid");
+  }
+
+  setGrid(grid) {
+    this.grid = grid;
+  }
+
+  createGridCell(i, j) {
+    const gridCellElement = document.createElement("div");
+    this.gridElement.appendChild(gridCellElement);
+    this.initCellEventListeners(gridCellElement, i, j);
+    return gridCellElement;
+  }
+
+  clearGrid() {
     this.activeMode = "start";
     this.clearAllColors();
   }
 
-  clearAllColors() {
-    for (let i = 0; i < this.numRows; i += 1) {
-      for (let j = 0; j < this.numColumns; j += 1) {
-        this.grid[i][j].element.style.backgroundColor = "rgb(244, 244, 244)";
-        this.grid[i][j].isWall = false;
-      }
-    }
-  }
-
-  initEventListeners(gridCellElement, i, j) {
+  initCellEventListeners(gridCellElement, i, j) {
     // if the grids cell element is clicked
     gridCellElement.addEventListener("click", () => {
       const instructionElement = document.getElementById("run");
       if (!this.locked) {
         switch (this.activeMode) {
           case "start":
-            this.startNodeExists = true;
-            if (!this.endNodeExists) {
-              console.log("testend");
-              instructionElement.textContent = "Place End Node";
-            } else {
-              instructionElement.textContent = "Press Spacebar To Run";
-            }
-            if (i !== this.stop.x || j !== this.stop.y) {
-              if (this.start.x !== null) {
-                this.grid[this.start.x][
-                  this.start.y
-                ].element.style.backgroundColor = "rgb(244, 244, 244)";
+            if (this.grid.grid[i][j] !== this.grid.stop) {
+              // update instructions
+              if (!this.grid.stop) {
+                instructionElement.textContent = "Place End Node";
+              } else {
+                instructionElement.textContent = "Press Spacebar To Run";
               }
-              this.start.x = i;
-              this.start.y = j;
-              this.start.node = this.grid[i][j];
+
+              // if another start node exists, reset background color
+              if (this.grid.start) {
+                this.grid.start.element.style.backgroundColor =
+                  "rgb(244, 244, 244)";
+              }
+
+              // set new start node, update color
+              this.grid.grid[i][j].isWall = false;
+              this.grid.start = this.grid.grid[i][j];
               gridCellElement.style.backgroundColor =
                 this.modes["start"].clickColor;
-              this.grid[i][j].isWall = false;
+              this.activeMode = "stop";
             }
-            this.activeMode = "stop";
             break;
           case "stop":
-            this.endNodeExists = true;
-            if (!this.startNodeExists) {
-              console.log("testend");
-              instructionElement.textContent = "Place Start Node";
-            } else {
-              instructionElement.textContent = "Press Spacebar To Run";
-            }
-            if (i !== this.start.x || j !== this.start.y) {
-              if (this.stop.x !== null) {
-                this.grid[this.stop.x][
-                  this.stop.y
-                ].element.style.backgroundColor = "rgb(244, 244, 244)";
+            // update instructions
+            if (this.grid.grid[i][j] !== this.grid.start) {
+              if (!this.grid.start) {
+                instructionElement.textContent = "Place Start Node";
+              } else {
+                instructionElement.textContent = "Press Spacebar To Run";
               }
-              this.stop.x = i;
-              this.stop.y = j;
-              this.stop.node = this.grid[i][j];
+
+              // if another stop node exists, reset background color
+              if (this.grid.stop) {
+                this.grid.stop.element.style.backgroundColor =
+                  "rgb(244, 244, 244)";
+              }
+
+              // set new start node, update color
+              this.grid.grid[i][j].isWall = false;
+              this.grid.stop = this.grid.grid[i][j];
               gridCellElement.style.backgroundColor =
                 this.modes["stop"].clickColor;
-              this.grid[i][j].isWall = false;
+              this.activeMode = "wall";
             }
-            this.activeMode = "wall";
             break;
           default:
-            // sets grid cell to a wall
+            // sets grid cell to a wall if not start or stop node
             if (
-              (i !== this.start.x || j !== this.start.y) &&
-              (i !== this.stop.x || j !== this.stop.y)
+              this.grid.grid[i][j] !== this.grid.start &&
+              this.grid.grid[i][j] !== this.grid.stop
             ) {
-              this.grid[i][j].isWall = true;
+              this.grid.grid[i][j].isWall = true;
               gridCellElement.style.backgroundColor =
                 this.modes["wall"].clickColor;
             }
-            console.log(this.grid[i][j].x, this.grid[i][j].y);
-            console.log(this.grid[i][j].neighbors);
         }
       }
     });
@@ -330,74 +288,119 @@ class Grid {
       }
     });
   }
+
+  clearHoverColors() {
+    for (let i = 0; i < this.grid.numRows; i += 1) {
+      for (let j = 0; j < this.grid.numColumns; j += 1) {
+        if (
+          this.grid.grid[i][j].element.style.backgroundColor ===
+            this.modes.start.hoverColor ||
+          this.grid.grid[i][j].element.style.backgroundColor ===
+            this.modes.stop.hoverColor ||
+          this.grid.grid[i][j].element.style.backgroundColor ===
+            this.modes.wall.hoverColor
+        ) {
+          this.grid.grid[i][j].element.style.backgroundColor =
+            "rgb(244, 244, 244)";
+        }
+      }
+    }
+  }
+
+  clearVisitedColors() {
+    for (let i = 0; i < this.grid.numRows; i += 1) {
+      for (let j = 0; j < this.grid.numColumns; j += 1) {
+        if (
+          this.grid.grid[i][j].element.style.backgroundColor ===
+            "rgb(255, 165, 0)" ||
+          this.grid.grid[i][j].element.style.backgroundColor ===
+            "rgb(247, 43, 11)"
+        ) {
+          this.grid.grid[i][j].element.style.backgroundColor =
+            "rgb(244, 244, 244)";
+        }
+      }
+    }
+  }
+
+  clearAllColors() {
+    for (let i = 0; i < this.grid.numRows; i += 1) {
+      for (let j = 0; j < this.grid.numColumns; j += 1) {
+        this.grid.grid[i][j].element.style.backgroundColor =
+          "rgb(244, 244, 244)";
+      }
+    }
+  }
 }
 
-const grid = new Grid(20, 12);
+const gridUI = new GridUI();
+const grid = new Grid(gridUI, 20, 12);
+gridUI.setGrid(grid);
 
 window.addEventListener("keydown", function (event) {
   const instructionElement = document.getElementById("run");
   switch (event.key) {
     case "ArrowLeft":
-      if (grid.currentHoveredElement && !grid.locked) {
+      if (gridUI.currentHoveredElement && !gridUI.locked) {
         if (
-          grid.currentHoveredElement.style.backgroundColor !==
-            grid.modes["start"].clickColor &&
-          grid.currentHoveredElement.style.backgroundColor !==
-            grid.modes["stop"].clickColor &&
-          grid.currentHoveredElement.style.backgroundColor !==
-            grid.modes["wall"].clickColor
+          gridUI.currentHoveredElement.style.backgroundColor !==
+            gridUI.modes["start"].clickColor &&
+          gridUI.currentHoveredElement.style.backgroundColor !==
+            gridUI.modes["stop"].clickColor &&
+          gridUI.currentHoveredElement.style.backgroundColor !==
+            gridUI.modes["wall"].clickColor
         ) {
-          grid.currentHoveredElement.style.backgroundColor =
-            grid.modes.stop.hoverColor;
+          gridUI.currentHoveredElement.style.backgroundColor =
+            gridUI.modes.stop.hoverColor;
         }
       }
-      grid.activeMode = "stop";
+      gridUI.activeMode = "stop";
       break;
     case "ArrowRight":
-      if (grid.currentHoveredElement && !grid.locked) {
+      if (gridUI.currentHoveredElement && !gridUI.locked) {
         if (
-          grid.currentHoveredElement.style.backgroundColor !==
-            grid.modes["start"].clickColor &&
-          grid.currentHoveredElement.style.backgroundColor !==
-            grid.modes["stop"].clickColor &&
-          grid.currentHoveredElement.style.backgroundColor !==
-            grid.modes["wall"].clickColor
+          gridUI.currentHoveredElement.style.backgroundColor !==
+            gridUI.modes["start"].clickColor &&
+          gridUI.currentHoveredElement.style.backgroundColor !==
+            gridUI.modes["stop"].clickColor &&
+          gridUI.currentHoveredElement.style.backgroundColor !==
+            gridUI.modes["wall"].clickColor
         ) {
-          grid.currentHoveredElement.style.backgroundColor =
-            grid.modes.start.hoverColor;
+          gridUI.currentHoveredElement.style.backgroundColor =
+            gridUI.modes.start.hoverColor;
         }
       }
-      grid.activeMode = "start";
+      gridUI.activeMode = "start";
       break;
     case "ArrowUp":
-      if (grid.currentHoveredElement) {
+      if (gridUI.currentHoveredElement) {
         if (
-          grid.currentHoveredElement.style.backgroundColor !==
-            grid.modes["start"].clickColor &&
-          grid.currentHoveredElement.style.backgroundColor !==
-            grid.modes["stop"].clickColor &&
-          grid.currentHoveredElement.style.backgroundColor !==
-            grid.modes["wall"].clickColor
+          gridUI.currentHoveredElement.style.backgroundColor !==
+            gridUI.modes["start"].clickColor &&
+          gridUI.currentHoveredElement.style.backgroundColor !==
+            gridUI.modes["stop"].clickColor &&
+          gridUI.currentHoveredElement.style.backgroundColor !==
+            gridUI.modes["wall"].clickColor
         ) {
-          grid.currentHoveredElement.style.backgroundColor =
-            grid.modes.wall.hoverColor;
+          gridUI.currentHoveredElement.style.backgroundColor =
+            gridUI.modes.wall.hoverColor;
         }
       }
-      grid.activeMode = "wall";
+      gridUI.activeMode = "wall";
       break;
     case " ":
-      if (!grid.startNodeExists && !grid.endNodeExists) {
+      if (!grid.start && !grid.stop) {
         instructionElement.textContent = "Place Start Node";
-      } else if (!grid.endNodeExists) {
+      } else if (!grid.stop) {
         instructionElement.textContent = "Place End Node";
-      } else if (!grid.startNodeExists) {
+      } else if (!grid.start) {
         instructionElement.textContent = "Place Start Node";
       } else {
         instructionElement.textContent = "Press Spacebar To Run";
       }
-      if (grid.locked) {
-        grid.clearVisitedColors();
-        grid.locked = false;
+      if (gridUI.locked) {
+        gridUI.clearVisitedColors();
+        gridUI.locked = false;
       } else {
         grid.bfs();
       }
@@ -405,7 +408,8 @@ window.addEventListener("keydown", function (event) {
     case "Escape":
       instructionElement.textContent = "Place Start Node";
       grid.clearGrid();
-      grid.locked = false;
+      gridUI.clearGrid();
+      gridUI.locked = false;
       break;
   }
 });
