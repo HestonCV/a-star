@@ -1,16 +1,39 @@
-# breadth-first-search
-This tool allows you to interactively set up and run a Breadth-First Search (BFS) algorithm on a grid. You can place a Start node, an End node, and Wall nodes that the algorithm cannot pass through. Once your nodes are placed, you can run the algorithm and observe the shortest path found.
+# **Breadth-First Search (BFS) Visualization**
 
-Here are the controls:
+This project is a visualization tool for the Breadth-First Search (BFS) algorithm. BFS is a strategy used in computer science for exploring a graph, or in simpler terms, a network of interconnected points. BFS starts at one point and explores all the neighboring points before moving further. This ensures that the closest solution is always found first.
 
-  Left and Right Arrows: Use these to toggle between placing the Start node and the End node. You can only place one of each.
+In the context of this interactive tool, we're using BFS to navigate a grid. The grid can be thought of as a simple maze, where each cell is a point that can be connected to its neighbors, blocked by walls that you place.
 
-  Up Arrow: Switch to Wall node placement mode. In this mode, you can place as many Wall nodes as you like. These nodes represent barriers that the algorithm cannot pass through.
+## **Features**
 
-  Spacebar: This key has two functions:
-      Run the Algorithm: If the algorithm has not yet been run, pressing the Spacebar will start it. The algorithm will calculate the shortest path from the Start node to the End node, avoiding any Wall nodes.
-      Reset the Algorithm: If the algorithm has already been run, pressing the Spacebar will reset it. This allows you to run the algorithm again without removing the nodes you've placed.
+- Interactive grid to visualize BFS algorithm
+- Ability to place start and end nodes
+- Ability to place wall nodes to block the algorithm
+- Controls to run and reset the algorithm
 
-Escape: This will clear all the nodes you've placed on the grid, allowing you to start fresh.
+## **How to Use**
 
-Remember to place both the Start and End nodes before running the algorithm.
+1. Use the Arrow-Left key to select the "End Node" mode. Click on a cell to place the end node.
+2. Use the Arrow-Right key to select the "Start Node" mode. Click on a cell to place the start node.
+3. Use the Arrow-Up key to select the "Wall Node" mode. Click on cells to place wall nodes.
+4. Press the Spacebar to run the algorithm. The BFS algorithm will start from the start node and find the shortest path to the end node, avoiding wall nodes.
+5. Press the Escape key to reset the grid and start over.
+
+## **Code Structure**
+
+- `Grid`: This class represents the grid. It contains methods for creating the grid, performing the BFS algorithm, and getting the neighbors of a node.
+- `GridUI`: This class handles the user interface for the grid. It contains methods for creating grid cells, handling user interactions, and updating the grid display.
+- Event listeners: These handle key presses and mouse events to control the grid and run the algorithm.
+
+## **Technologies Used**
+
+- JavaScript for the main application logic
+- HTML for the webpage structure
+- CSS for styling the webpage
+
+## **Future Improvements**
+
+- Add more algorithms for pathfinding, such as Dijkstra's algorithm or A* search.
+- Allow the user to adjust the size of the grid.
+- Allow the user to adjust the speed of the algorithm animation
+
