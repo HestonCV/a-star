@@ -38,6 +38,8 @@ class Grid {
           previous.set(neighbor, current);
           this.drawShortestPath(previous);
           this.gridUI.clearHoverColors();
+          const instructionElement = document.getElementById("run");
+          instructionElement.textContent = "Press Spacebar To Restart";
           return;
         }
         if (!visited.has(neighbor) && !neighbor.isWall) {
@@ -49,9 +51,9 @@ class Grid {
         }
       }
     }
-
-    console.log("Did not find the stop node");
     this.gridUI.clearHoverColors();
+    const instructionElement = document.getElementById("run");
+    instructionElement.textContent = "Press Spacebar To Restart";
   }
 
   getNeighbors(node) {
