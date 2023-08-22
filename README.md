@@ -31,7 +31,7 @@ In the context of this interactive tool, we're using BFS to navigate a grid. The
 - HTML for the webpage structure
 - CSS for styling the webpage
 
-## **Future Improvements**
+## **Possible Future Improvements**
 
 - Add more algorithms for pathfinding, such as Dijkstra's algorithm or A* search.
 - Allow the user to adjust the size of the grid.
